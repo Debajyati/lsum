@@ -1,7 +1,7 @@
 import os
 import mimetypes
 
-def get_mime_type(file_path):
+def get_mime_type(file_path:str):
     """
     Detects the MIME type of a file.
     - First tries python-magic (content-based detection)
