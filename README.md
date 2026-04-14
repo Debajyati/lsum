@@ -1,7 +1,7 @@
 # 📂 lsum
 
 [![PyPI version](https://img.shields.io/pypi/v/lsum.svg?color=blue)](https://pypi.org/project/lsum/)
-[![Python Version](https://img.shields.io/badge/python-3.12+-blue.svg)](https://python.org)
+[![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
