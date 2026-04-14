@@ -128,12 +128,12 @@ def cli(
                 group_files_by_mime_type(path, gitignore=gitignore)
             elif group_by == "extension":
                 group_files_by_extension(path, gitignore=gitignore)
-        elif filter_extension:
-            filter_files_by_extension(path, filter_extension, gitignore=gitignore)
         elif count and filter:
             count_filter_files_by_mime_type(path, filter, gitignore=gitignore)
         elif count and filter_extension:
             count_filter_files_by_extension(path, filter_extension, gitignore=gitignore)
+        elif filter_extension:
+            filter_files_by_extension(path, filter_extension, gitignore=gitignore)
         elif filter:
             filter_files_by_mime_type(path, filter, gitignore=gitignore)
         elif sort:
