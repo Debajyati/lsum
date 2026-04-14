@@ -16,7 +16,6 @@ from .lib.ls import (
     filter_files_by_mime_type,
     count_filter_files_by_extension,
     count_filter_files_by_mime_type,
-    sort_files,
 )
 import click
 
@@ -120,26 +119,24 @@ def cli(
         elif count and group_extension:
             count_files_by_extension(path, gitignore=gitignore)
         elif group_extension:
-            group_files_by_extension(path, gitignore=gitignore)
+            group_files_by_extension(path, gitignore=gitignore, sort_by=sort)
         elif group:
-            group_files_by_mime_type(path, gitignore=gitignore)
+            group_files_by_mime_type(path, gitignore=gitignore, sort_by=sort)
         elif group_by:
             if group_by == "mime":
-                group_files_by_mime_type(path, gitignore=gitignore)
+                group_files_by_mime_type(path, gitignore=gitignore, sort_by=sort)
             elif group_by == "extension":
-                group_files_by_extension(path, gitignore=gitignore)
+                group_files_by_extension(path, gitignore=gitignore, sort_by=sort)
         elif count and filter:
             count_filter_files_by_mime_type(path, filter, gitignore=gitignore)
         elif count and filter_extension:
             count_filter_files_by_extension(path, filter_extension, gitignore=gitignore)
         elif filter_extension:
-            filter_files_by_extension(path, filter_extension, gitignore=gitignore)
+            filter_files_by_extension(path, filter_extension, gitignore=gitignore, sort_by=sort)
         elif filter:
-            filter_files_by_mime_type(path, filter, gitignore=gitignore)
-        elif sort:
-            sort_files(path, sort, gitignore=gitignore)
+            filter_files_by_mime_type(path, filter, gitignore=gitignore, sort_by=sort)
         else:
-            list_files(path, gitignore=gitignore)
+            list_files(path, gitignore=gitignore, sort_by=sort)
 
 
 if __name__ == "__main__":

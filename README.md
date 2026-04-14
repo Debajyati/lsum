@@ -24,6 +24,9 @@ Standard tools like `ls` or `tree` are great for finding files, but they fail to
 * **Clean Analysis:** Use the `--gitignore` flag to strip out `node_modules`, build artifacts, and logs, focusing only on the code that matters.
 * **Recursive Intelligence:** Understand the composition of entire project trees in a single, formatted view.
 
+> [!NOTE]
+> lsum is under active development
+
 ---
 
 ### 🚀 Installation

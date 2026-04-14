@@ -32,20 +32,22 @@ def count_files(path=".", gitignore=False):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def list_files(path=".", gitignore=False):
+def list_files(path=".", gitignore=False, sort_by=None):
     try:
         matcher = get_gitignore_matcher(path) if gitignore else None
-        dirs = []
-        non_dirs = []
-        with os.scandir(path) as files:
-            for file in files:
-                if matcher and matcher.match_file(file.name + ("/" if file.is_dir() else "")):
+        entries_list = []
+        with os.scandir(path) as entries:
+            for entry in entries:
+                if matcher and matcher.match_file(entry.name + ("/" if entry.is_dir() else "")):
                     continue
-                if file.is_dir():
-                    dirs.append(file.name)
-                else:
-                    non_dirs.append(file.name)
-        
+                entries_list.append(entry)
+
+        if sort_by:
+            entries_list = get_sorted_entries(entries_list, sort_by)
+
+        dirs = [f"{e.name}/" for e in entries_list if e.is_dir()]
+        non_dirs = [e.name for e in entries_list if e.is_file()]
+
         dirlen = len(dirs)
         non_dirlen = len(non_dirs)
 
@@ -68,7 +70,7 @@ def list_files(path=".", gitignore=False):
         index = 1
         for first, second in files_assoclist.__iter__():
             table.add_row(
-                str(index), f"{first}/" if len(first) else "", f"{second}"
+                str(index), f"{first}" if len(first) else "", f"{second}"
             )
             index += 1
         print(table)
@@ -119,17 +121,24 @@ def count_files_by_mime_type(path=".", gitignore=False):
 
 # multibox layout with one box for each MIME type, and each box contains a list of files with that MIME type, and the box title is the MIME type and the count of files with that MIME type
 # use colormap and MIME_TYPE_ICONS to color the box title and add an icon to the box title based on the MIME type, if the MIME type is not in the colormap or MIME_TYPE_ICONS, use a default color and icon
-def group_files_by_mime_type(path=".", gitignore=False):
+def group_files_by_mime_type(path=".", gitignore=False, sort_by=None):
     try:
         matcher = get_gitignore_matcher(path) if gitignore else None
         mime_groups = {}
+        entries_list = []
         with os.scandir(path) as entries:
             for entry in entries:
                 if matcher and matcher.match_file(entry.name + ("/" if entry.is_dir() else "")):
                     continue
                 if entry.is_file():
-                    mime_type = get_mime_type(entry.path) or "unknown/type"
-                    mime_groups.setdefault(mime_type, []).append(entry.name)
+                    entries_list.append(entry)
+
+        if sort_by:
+            entries_list = get_sorted_entries(entries_list, sort_by)
+
+        for entry in entries_list:
+            mime_type = get_mime_type(entry.path) or "unknown/type"
+            mime_groups.setdefault(mime_type, []).append(entry.name)
 
         panels = []
         for mime, files in mime_groups.items():
@@ -188,17 +197,24 @@ def count_files_by_extension(path=".", gitignore=False):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def group_files_by_extension(path=".", gitignore=False):
+def group_files_by_extension(path=".", gitignore=False, sort_by=None):
     try:
         matcher = get_gitignore_matcher(path) if gitignore else None
         extension_groups = {}
-        with os.scandir(path) as files:
-            for file in files:
-                if matcher and matcher.match_file(file.name + ("/" if file.is_dir() else "")):
+        entries_list = []
+        with os.scandir(path) as entries:
+            for entry in entries:
+                if matcher and matcher.match_file(entry.name + ("/" if entry.is_dir() else "")):
                     continue
-                if file.is_file():
-                    ext = os.path.splitext(file.name)[1].lower() or "No Extension"
-                    extension_groups.setdefault(ext, []).append(file.path)
+                if entry.is_file():
+                    entries_list.append(entry)
+
+        if sort_by:
+            entries_list = get_sorted_entries(entries_list, sort_by)
+
+        for entry in entries_list:
+            ext = os.path.splitext(entry.name)[1].lower() or "No Extension"
+            extension_groups.setdefault(ext, []).append(entry.path)
 
         table = Table(
             show_header=True,
@@ -463,7 +479,7 @@ def recursive_group_files_by_extension(path=".", gitignore=False):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def filter_files_by_extension(path=".", extension=".txt", gitignore=False):
+def filter_files_by_extension(path=".", extension=".txt", gitignore=False, sort_by=None):
     try:
         matcher = get_gitignore_matcher(path) if gitignore else None
         table = Table(
@@ -475,14 +491,21 @@ def filter_files_by_extension(path=".", extension=".txt", gitignore=False):
         table.add_column("Index", style="dim", width=6, justify="right")
         table.add_column("File Name", style="bold green", justify="left")
 
-        index = 1
-        with os.scandir(path) as files:
-            for file in files:
-                if matcher and matcher.match_file(file.name + ("/" if file.is_dir() else "")):
+        entries_list = []
+        with os.scandir(path) as entries:
+            for entry in entries:
+                if matcher and matcher.match_file(entry.name + ("/" if entry.is_dir() else "")):
                     continue
-                if file.is_file() and file.name.lower().endswith(extension.lower()):
-                    table.add_row(str(index), file.name)
-                    index += 1
+                if entry.is_file() and entry.name.lower().endswith(extension.lower()):
+                    entries_list.append(entry)
+
+        if sort_by:
+            entries_list = get_sorted_entries(entries_list, sort_by)
+
+        index = 1
+        for entry in entries_list:
+            table.add_row(str(index), entry.name)
+            index += 1
 
         print(table)
 
@@ -495,7 +518,7 @@ def filter_files_by_extension(path=".", extension=".txt", gitignore=False):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def filter_files_by_mime_type(path=".", mime_type="text/plain", gitignore=False):
+def filter_files_by_mime_type(path=".", mime_type="text/plain", gitignore=False, sort_by=None):
     try:
         matcher = get_gitignore_matcher(path) if gitignore else None
         table = Table(
@@ -507,16 +530,23 @@ def filter_files_by_mime_type(path=".", mime_type="text/plain", gitignore=False)
         table.add_column("Index", style="dim", width=6, justify="right")
         table.add_column("File Name", style="bold green", justify="left")
 
-        index = 1
-        with os.scandir(path) as files:
-            for file in files:
-                if matcher and matcher.match_file(file.name + ("/" if file.is_dir() else "")):
+        entries_list = []
+        with os.scandir(path) as entries:
+            for entry in entries:
+                if matcher and matcher.match_file(entry.name + ("/" if entry.is_dir() else "")):
                     continue
-                if file.is_file():
-                    file_mime_type = get_mime_type(file.path)
+                if entry.is_file():
+                    file_mime_type = get_mime_type(entry.path)
                     if file_mime_type == mime_type:
-                        table.add_row(str(index), file.name)
-                        index += 1
+                        entries_list.append(entry)
+
+        if sort_by:
+            entries_list = get_sorted_entries(entries_list, sort_by)
+
+        index = 1
+        for entry in entries_list:
+            table.add_row(str(index), entry.name)
+            index += 1
 
         print(table)
 
@@ -575,46 +605,15 @@ def count_filter_files_by_extension(path=".", extension=".txt", gitignore=False)
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def sort_files(path=".", sort_by="name", gitignore=False):
-    try:
-        matcher = get_gitignore_matcher(path) if gitignore else None
-        files_list = []
-        with os.scandir(path) as files:
-            for file in files:
-                if matcher and matcher.match_file(file.name + ("/" if file.is_dir() else "")):
-                    continue
-                if file.is_file():
-                    if sort_by == "name":
-                        files_list.append((file.name, file.path))
-                    elif sort_by == "size":
-                        files_list.append((file.stat().st_size, file.path))
-                    elif sort_by == "date":
-                        files_list.append((file.stat().st_mtime, file.path))
 
-        files_list.sort(key=lambda x: x[0])
-
-        table = Table(
-            show_header=True,
-            header_style="bold magenta",
-            title=f"{path if path != '.' else 'CWD'} Files Sorted by {sort_by.capitalize()}",
-            title_style="bold underline magenta",
-        )
-        table.add_column("Index", style="dim", width=6, justify="right")
-        table.add_column("File Name", style="bold green", justify="left")
-
-        index = 1
-        for _, file_path in files_list:
-            table.add_row(str(index), os.path.basename(file_path))
-            index += 1
-
-        print(table)
-
-    except FileNotFoundError:
-        print(
-            f"[bold yellow]Error:[/bold yellow] The directory '{path}' does not exist."
-        )
-    except PermissionError:
-        print(
-            f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
-        )
-
+def get_sorted_entries(entries, sort_by):
+    if not sort_by:
+        return entries
+    if sort_by == "size":
+        return sorted(entries, key=lambda e: e.stat().st_size)
+    elif sort_by == "date":
+        return sorted(entries, key=lambda e: e.stat().st_mtime)
+    elif sort_by == "name":
+        return sorted(entries, key=lambda e: e.name.lower())
+    else:
+        return entries
