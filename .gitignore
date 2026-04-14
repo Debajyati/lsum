@@ -11,3 +11,4 @@ wheels/
 
 # extra local files
 .gemini_session
+.pypirc
