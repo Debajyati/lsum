@@ -66,6 +66,12 @@ import click
     is_flag=True,
     help="Recursively perform the specified operations on all subdirectories within the given path. Must be used in conjunction with other options to specify the desired operations (e.g., counting, grouping). Note: currently, filtering or sorting files is not supported in recursive mode.",
 )
+@click.option(
+    "--gitignore",
+    "-gi",
+    is_flag=True,
+    help="Respect the .gitignore file if present in the specified directory and exclude those files and directories mentioned in the file from the search space.",
+)
 def cli(
     path,
     count,
@@ -76,63 +82,64 @@ def cli(
     filter_extension,
     sort,
     recursive,
+    gitignore,
 ):
     if recursive:
         if count and group_by:
             if group_by == "mime":
-                recursive_count_files_by_mime_type(path)
+                recursive_count_files_by_mime_type(path, gitignore=gitignore)
             elif group_by == "extension":
-                recursive_count_files_by_extension(path)
+                recursive_count_files_by_extension(path, gitignore=gitignore)
         elif count and not group_by and not group and not group_extension:
-            recursive_count_files(path)
+            recursive_count_files(path, gitignore=gitignore)
         elif count and group:
-            recursive_count_files_by_mime_type(path)
+            recursive_count_files_by_mime_type(path, gitignore=gitignore)
         elif count and group_extension:
-            recursive_count_files_by_extension(path)
+            recursive_count_files_by_extension(path, gitignore=gitignore)
         elif group_extension:
-            recursive_group_files_by_extension(path)
+            recursive_group_files_by_extension(path, gitignore=gitignore)
         elif group:
-            recursive_group_files_by_mime_type(path)
+            recursive_group_files_by_mime_type(path, gitignore=gitignore)
         elif group_by:
             if group_by == "mime":
-                recursive_group_files_by_mime_type(path)
+                recursive_group_files_by_mime_type(path, gitignore=gitignore)
             elif group_by == "extension":
-                recursive_group_files_by_extension(path)
+                recursive_group_files_by_extension(path, gitignore=gitignore)
         else:
-            recursive_list_files(path)
+            recursive_list_files(path, gitignore=gitignore)
     else:
         if count and group_by:
             if group_by == "mime":
-                count_files_by_mime_type(path)
+                count_files_by_mime_type(path, gitignore=gitignore)
             elif group_by == "extension":
-                count_files_by_extension(path)
+                count_files_by_extension(path, gitignore=gitignore)
         elif count and not group_by and not group and not group_extension:
-            count_files(path)
+            count_files(path, gitignore=gitignore)
         elif count and group:
-            count_files_by_mime_type(path)
+            count_files_by_mime_type(path, gitignore=gitignore)
         elif count and group_extension:
-            count_files_by_extension(path)
+            count_files_by_extension(path, gitignore=gitignore)
         elif group_extension:
-            group_files_by_extension(path)
+            group_files_by_extension(path, gitignore=gitignore)
         elif group:
-            group_files_by_mime_type(path)
+            group_files_by_mime_type(path, gitignore=gitignore)
         elif group_by:
             if group_by == "mime":
-                group_files_by_mime_type(path)
+                group_files_by_mime_type(path, gitignore=gitignore)
             elif group_by == "extension":
-                group_files_by_extension(path)
+                group_files_by_extension(path, gitignore=gitignore)
         elif filter_extension:
-            filter_files_by_extension(path, filter_extension)
+            filter_files_by_extension(path, filter_extension, gitignore=gitignore)
         elif count and filter:
-            count_filter_files_by_mime_type(path, filter)
+            count_filter_files_by_mime_type(path, filter, gitignore=gitignore)
         elif count and filter_extension:
-            count_filter_files_by_extension(path, filter_extension)
+            count_filter_files_by_extension(path, filter_extension, gitignore=gitignore)
         elif filter:
-            filter_files_by_mime_type(path, filter)
+            filter_files_by_mime_type(path, filter, gitignore=gitignore)
         elif sort:
-            sort_files(path, sort)
+            sort_files(path, sort, gitignore=gitignore)
         else:
-            list_files(path)
+            list_files(path, gitignore=gitignore)
 
 
 if __name__ == "__main__":

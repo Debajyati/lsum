@@ -1,6 +1,6 @@
 import os
 from collections import Counter
-from .utils import assoclist
+from .utils import assoclist, get_gitignore_matcher
 from rich import print
 from rich.table import Table
 from rich.panel import Panel
@@ -8,17 +8,19 @@ from rich.columns import Columns
 from .mime import get_mime_type
 from .constants import MIME_TYPE_ICONS, colormap
 
-def count_files(path="."):
+def count_files(path=".", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         dirs = 0
         non_dirs = 0
-        files = os.scandir(path)
-        for file in files:
-            if file.is_dir():
-                dirs += 1
-            else:
-                non_dirs += 1
-        files.close()
+        with os.scandir(path) as files:
+            for file in files:
+                if matcher and matcher.match_file(file.name + ("/" if file.is_dir() else "")):
+                    continue
+                if file.is_dir():
+                    dirs += 1
+                else:
+                    non_dirs += 1
         print(f"Directories: {dirs}")
         print(f"Files: {non_dirs}")
     except FileNotFoundError:
@@ -30,18 +32,20 @@ def count_files(path="."):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def list_files(path="."):
+def list_files(path=".", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         dirs = []
         non_dirs = []
-        files = os.scandir(path)
-        for file in files:
-            if file.is_dir():
-                dirs.append(file.name)
-            else:
-                non_dirs.append(file.name)
-        files.close()
-
+        with os.scandir(path) as files:
+            for file in files:
+                if matcher and matcher.match_file(file.name + ("/" if file.is_dir() else "")):
+                    continue
+                if file.is_dir():
+                    dirs.append(file.name)
+                else:
+                    non_dirs.append(file.name)
+        
         dirlen = len(dirs)
         non_dirlen = len(non_dirs)
 
@@ -78,11 +82,14 @@ def list_files(path="."):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def count_files_by_mime_type(path="."):
+def count_files_by_mime_type(path=".", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         mime_counts = Counter()
         with os.scandir(path) as files:
             for file in files:
+                if matcher and matcher.match_file(file.name + ("/" if file.is_dir() else "")):
+                    continue
                 if file.is_file():
                     mime_type = get_mime_type(file.path) or "Unknown MIME Type"
                     mime_counts[mime_type] += 1
@@ -112,11 +119,14 @@ def count_files_by_mime_type(path="."):
 
 # multibox layout with one box for each MIME type, and each box contains a list of files with that MIME type, and the box title is the MIME type and the count of files with that MIME type
 # use colormap and MIME_TYPE_ICONS to color the box title and add an icon to the box title based on the MIME type, if the MIME type is not in the colormap or MIME_TYPE_ICONS, use a default color and icon
-def group_files_by_mime_type(path="."):
+def group_files_by_mime_type(path=".", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         mime_groups = {}
         with os.scandir(path) as entries:
             for entry in entries:
+                if matcher and matcher.match_file(entry.name + ("/" if entry.is_dir() else "")):
+                    continue
                 if entry.is_file():
                     mime_type = get_mime_type(entry.path) or "unknown/type"
                     mime_groups.setdefault(mime_type, []).append(entry.name)
@@ -143,11 +153,14 @@ def group_files_by_mime_type(path="."):
     except PermissionError:
         print(f"[bold red]Error:[/bold red] Permission denied for '{path}'.")
 
-def count_files_by_extension(path="."):
+def count_files_by_extension(path=".", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         extension_counts = Counter()
         with os.scandir(path) as files:
             for file in files:
+                if matcher and matcher.match_file(file.name + ("/" if file.is_dir() else "")):
+                    continue
                 if file.is_file():
                     ext = os.path.splitext(file.name)[1].lower() or "No Extension"
                     extension_counts[ext] += 1
@@ -175,11 +188,14 @@ def count_files_by_extension(path="."):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def group_files_by_extension(path="."):
+def group_files_by_extension(path=".", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         extension_groups = {}
         with os.scandir(path) as files:
             for file in files:
+                if matcher and matcher.match_file(file.name + ("/" if file.is_dir() else "")):
+                    continue
                 if file.is_file():
                     ext = os.path.splitext(file.name)[1].lower() or "No Extension"
                     extension_groups.setdefault(ext, []).append(file.path)
@@ -219,8 +235,9 @@ def group_files_by_extension(path="."):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def recursive_list_files(path="."):
+def recursive_list_files(path=".", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         table = Table(
             show_header=True,
             header_style="bold magenta",
@@ -232,6 +249,13 @@ def recursive_list_files(path="."):
 
         index = 1
         for root, dirs, files in os.walk(path):
+            if matcher:
+                rel_root = os.path.relpath(root, path)
+                if rel_root == ".":
+                    rel_root = ""
+                dirs[:] = [d for d in dirs if not matcher.match_file(os.path.join(rel_root, d) + "/")]
+                files = [f for f in files if not matcher.match_file(os.path.join(rel_root, f))]
+
             for name in dirs + files:
                 full_path = os.path.join(root, name)
                 table.add_row(str(index), full_path)
@@ -248,11 +272,19 @@ def recursive_list_files(path="."):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def recursive_count_files(path="."):
+def recursive_count_files(path=".", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         file_count = 0
         dir_count = 0
         for root, dirs, files in os.walk(path):
+            if matcher:
+                rel_root = os.path.relpath(root, path)
+                if rel_root == ".":
+                    rel_root = ""
+                dirs[:] = [d for d in dirs if not matcher.match_file(os.path.join(rel_root, d) + "/")]
+                files = [f for f in files if not matcher.match_file(os.path.join(rel_root, f))]
+
             file_count += len(files)
             dir_count += len(dirs)
 
@@ -268,10 +300,18 @@ def recursive_count_files(path="."):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def recursive_count_files_by_mime_type(path="."):
+def recursive_count_files_by_mime_type(path=".", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         mime_counts = Counter()
         for root, dirs, files in os.walk(path):
+            if matcher:
+                rel_root = os.path.relpath(root, path)
+                if rel_root == ".":
+                    rel_root = ""
+                dirs[:] = [d for d in dirs if not matcher.match_file(os.path.join(rel_root, d) + "/")]
+                files = [f for f in files if not matcher.match_file(os.path.join(rel_root, f))]
+
             for file in files:
                 full_path = os.path.join(root, file)
                 mime_type = get_mime_type(full_path) or "Unknown MIME Type"
@@ -300,10 +340,18 @@ def recursive_count_files_by_mime_type(path="."):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def recursive_group_files_by_mime_type(path="."):
+def recursive_group_files_by_mime_type(path=".", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         mime_groups = {}
         for root, dirs, files in os.walk(path):
+            if matcher:
+                rel_root = os.path.relpath(root, path)
+                if rel_root == ".":
+                    rel_root = ""
+                dirs[:] = [d for d in dirs if not matcher.match_file(os.path.join(rel_root, d) + "/")]
+                files = [f for f in files if not matcher.match_file(os.path.join(rel_root, f))]
+
             for file in files:
                 full_path = os.path.join(root, file)
                 mime_type = get_mime_type(full_path) or "unknown/type"
@@ -325,10 +373,18 @@ def recursive_group_files_by_mime_type(path="."):
     except PermissionError:
         print(f"[bold red]Error:[/bold red] Permission denied for '{path}'.")
 
-def recursive_count_files_by_extension(path="."):
+def recursive_count_files_by_extension(path=".", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         extension_counts = Counter()
         for root, dirs, files in os.walk(path):
+            if matcher:
+                rel_root = os.path.relpath(root, path)
+                if rel_root == ".":
+                    rel_root = ""
+                dirs[:] = [d for d in dirs if not matcher.match_file(os.path.join(rel_root, d) + "/")]
+                files = [f for f in files if not matcher.match_file(os.path.join(rel_root, f))]
+
             for file in files:
                 ext = os.path.splitext(file)[1].lower() or "No Extension"
                 extension_counts[ext] += 1
@@ -356,10 +412,18 @@ def recursive_count_files_by_extension(path="."):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def recursive_group_files_by_extension(path="."):
+def recursive_group_files_by_extension(path=".", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         extension_groups = {}
         for root, dirs, files in os.walk(path):
+            if matcher:
+                rel_root = os.path.relpath(root, path)
+                if rel_root == ".":
+                    rel_root = ""
+                dirs[:] = [d for d in dirs if not matcher.match_file(os.path.join(rel_root, d) + "/")]
+                files = [f for f in files if not matcher.match_file(os.path.join(rel_root, f))]
+
             for file in files:
                 ext = os.path.splitext(file)[1].lower() or "No Extension"
                 full_path = os.path.join(root, file)
@@ -399,8 +463,9 @@ def recursive_group_files_by_extension(path="."):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def filter_files_by_extension(path=".", extension=".txt"):
+def filter_files_by_extension(path=".", extension=".txt", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         table = Table(
             show_header=True,
             header_style="bold magenta",
@@ -413,6 +478,8 @@ def filter_files_by_extension(path=".", extension=".txt"):
         index = 1
         with os.scandir(path) as files:
             for file in files:
+                if matcher and matcher.match_file(file.name + ("/" if file.is_dir() else "")):
+                    continue
                 if file.is_file() and file.name.lower().endswith(extension.lower()):
                     table.add_row(str(index), file.name)
                     index += 1
@@ -428,8 +495,9 @@ def filter_files_by_extension(path=".", extension=".txt"):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def filter_files_by_mime_type(path=".", mime_type="text/plain"):
+def filter_files_by_mime_type(path=".", mime_type="text/plain", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         table = Table(
             show_header=True,
             header_style="bold magenta",
@@ -442,6 +510,8 @@ def filter_files_by_mime_type(path=".", mime_type="text/plain"):
         index = 1
         with os.scandir(path) as files:
             for file in files:
+                if matcher and matcher.match_file(file.name + ("/" if file.is_dir() else "")):
+                    continue
                 if file.is_file():
                     file_mime_type = get_mime_type(file.path)
                     if file_mime_type == mime_type:
@@ -459,11 +529,14 @@ def filter_files_by_mime_type(path=".", mime_type="text/plain"):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def count_filter_files_by_mime_type(path=".", mime_type="text/plain"):
+def count_filter_files_by_mime_type(path=".", mime_type="text/plain", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         count = 0
         with os.scandir(path) as files:
             for file in files:
+                if matcher and matcher.match_file(file.name + ("/" if file.is_dir() else "")):
+                    continue
                 if file.is_file():
                     file_mime_type = get_mime_type(file.path)
                     if file_mime_type == mime_type:
@@ -480,11 +553,14 @@ def count_filter_files_by_mime_type(path=".", mime_type="text/plain"):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def count_filter_files_by_extension(path=".", extension=".txt"):
+def count_filter_files_by_extension(path=".", extension=".txt", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         count = 0
         with os.scandir(path) as files:
             for file in files:
+                if matcher and matcher.match_file(file.name + ("/" if file.is_dir() else "")):
+                    continue
                 if file.is_file() and file.name.lower().endswith(extension.lower()):
                     count += 1
 
@@ -499,11 +575,14 @@ def count_filter_files_by_extension(path=".", extension=".txt"):
             f"[bold yellow]Error:[/bold yellow] You do not have permission to access '{path}'."
         )
 
-def sort_files(path=".", sort_by="name"):
+def sort_files(path=".", sort_by="name", gitignore=False):
     try:
+        matcher = get_gitignore_matcher(path) if gitignore else None
         files_list = []
         with os.scandir(path) as files:
             for file in files:
+                if matcher and matcher.match_file(file.name + ("/" if file.is_dir() else "")):
+                    continue
                 if file.is_file():
                     if sort_by == "name":
                         files_list.append((file.name, file.path))
