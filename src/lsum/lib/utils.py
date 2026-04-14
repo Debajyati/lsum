@@ -7,14 +7,3 @@ def assoclist(array1:list[Any], array2:list[Any]):
     for i in range(length):
         result.append((array1[i],array2[i]))
     return result
-
-colormap = {
-    "red",
-    "green",
-    "blue",
-    "yellow",
-    "cyan",
-    "magenta",
-    "black",
-    "white"
-}
