@@ -31,6 +31,28 @@ Standard tools like `ls` or `tree` are great for finding files, but they fail to
 
 ### 🚀 Installation
 
+#### Pre-Requisites
+
+This package depends on `python-magic`, which requires `libmagic`.
+
+If not installed already, install it using -
+
+##### Linux
+```bash
+sudo apt install libmagic1
+```
+
+##### macOS
+```bash
+brew install libmagic
+```
+
+##### Windows (you don't need to install it manually, it is handled in the dependencies)
+Install via:
+```bash
+pip install python-magic-bin
+```
+
 #### 📦 From PyPI (Recommended)
 
 Install using [uv](https://github.com/astral-sh/uv) for the best experience:
