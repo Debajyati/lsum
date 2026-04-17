@@ -26,5 +26,3 @@ pnpm-debug.log*
 # vscode settings folder
 .vscode
 
-# extras
-.wrangler
