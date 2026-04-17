@@ -1,51 +1,100 @@
 ---
 ---
 
-<div class="relative group">
-  <button
-    id="copy-btn"
-    class="bg-slate-800 border border-slate-700 hover:border-cyan-500/50 hover:bg-slate-700/50 transition-all duration-200 py-3 px-6 rounded-xl flex items-center space-x-3 text-sm md:text-base font-mono group"
-  >
-    <span class="text-slate-400">$</span>
-    <span id="copy-command" class="text-slate-100">pip install lsum</span>
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      class="h-5 w-5 text-slate-400 group-hover:text-cyan-400 transition-colors" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      stroke-width="2" 
-      stroke-linecap="round" 
-      stroke-linejoin="round"
+<div class="copy-widget relative flex flex-col items-start md:items-center">
+  <!-- Tabs -->
+  <div class="flex space-x-1 mb-2 bg-slate-800/80 p-1 rounded-lg border border-slate-700/50 w-fit">
+    <button
+      class="tab-btn px-3 py-1 text-xs font-medium rounded-md bg-slate-700 text-slate-100 shadow-sm transition-colors"
+      data-target="uv"
     >
-      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-    </svg>
-  </button>
-  <div 
-    id="copy-toast" 
-    class="absolute -top-12 left-1/2 -translate-x-1/2 bg-cyan-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-lg opacity-0 pointer-events-none transition-all duration-300 translate-y-2 scale-90"
-  >
-    Copied!
+      uv
+    </button>
+    <button
+      class="tab-btn px-3 py-1 text-xs font-medium rounded-md text-slate-400 hover:text-slate-200 transition-colors"
+      data-target="pip"
+    >
+      pip
+    </button>
+  </div>
+
+  <div class="relative group w-full">
+    <button
+      class="copy-btn w-full bg-slate-800 border border-slate-700 hover:border-cyan-500/50 hover:bg-slate-700/50 transition-all duration-200 py-3 px-6 rounded-xl flex items-center space-x-3 text-sm md:text-base font-mono group"
+    >
+      <span class="text-slate-400">$</span>
+      <span class="copy-command text-slate-100 whitespace-nowrap">uv tool install lsum</span>
+      <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        class="h-5 w-5 text-slate-400 group-hover:text-cyan-400 transition-colors ml-auto" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"
+      >
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+    </button>
+    <div 
+      class="copy-toast absolute -top-12 left-1/2 -translate-x-1/2 bg-cyan-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-lg opacity-0 pointer-events-none transition-all duration-300 translate-y-2 scale-90 z-20 whitespace-nowrap"
+    >
+      Copied!
+    </div>
   </div>
 </div>
 
 <script>
-  const btn = document.getElementById('copy-btn');
-  const toast = document.getElementById('copy-toast');
-  const command = document.getElementById('copy-command')?.innerText || 'pip install lsum';
+  const widgets = document.querySelectorAll('.copy-widget');
+  
+  const commands: Record<string, string> = {
+    uv: 'uv tool install lsum',
+    pip: 'pip install lsum'
+  };
 
-  btn?.addEventListener('click', () => {
-    navigator.clipboard.writeText(command).then(() => {
-      // Show toast
-      toast?.classList.remove('opacity-0', 'translate-y-2', 'scale-90', 'pointer-events-none');
-      toast?.classList.add('opacity-100', 'translate-y-0', 'scale-100');
-      
-      // Hide after 2 seconds
-      setTimeout(() => {
-        toast?.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
-        toast?.classList.add('opacity-0', 'translate-y-2', 'scale-90', 'pointer-events-none');
-      }, 2000);
+  widgets.forEach(widget => {
+    const copyBtn = widget.querySelector('.copy-btn');
+    const toast = widget.querySelector('.copy-toast');
+    const commandEl = widget.querySelector('.copy-command');
+    const tabBtns = widget.querySelectorAll('.tab-btn');
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.getAttribute('data-target');
+        
+        // Update tabs styling
+        tabBtns.forEach(t => {
+          if (t === btn) {
+            t.classList.add('bg-slate-700', 'text-slate-100', 'shadow-sm');
+            t.classList.remove('text-slate-400', 'hover:text-slate-200');
+          } else {
+            t.classList.remove('bg-slate-700', 'text-slate-100', 'shadow-sm');
+            t.classList.add('text-slate-400', 'hover:text-slate-200');
+          }
+        });
+
+        // Update command text
+        if (commandEl && target && commands[target]) {
+          commandEl.textContent = commands[target];
+        }
+      });
+    });
+
+    copyBtn?.addEventListener('click', () => {
+      const currentCommand = commandEl?.textContent || commands.uv;
+      navigator.clipboard.writeText(currentCommand).then(() => {
+        // Show toast
+        toast?.classList.remove('opacity-0', 'translate-y-2', 'scale-90', 'pointer-events-none');
+        toast?.classList.add('opacity-100', 'translate-y-0', 'scale-100');
+        
+        // Hide after 2 seconds
+        setTimeout(() => {
+          toast?.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+          toast?.classList.add('opacity-0', 'translate-y-2', 'scale-90', 'pointer-events-none');
+        }, 2000);
+      });
     });
   });
 </script>
