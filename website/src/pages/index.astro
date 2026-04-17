@@ -1,0 +1,106 @@
+---
+import Layout from '../layouts/Layout.astro';
+import CopyButton from '../components/CopyButton.astro';
+import TerminalMockup from '../components/TerminalMockup.astro';
+---
+
+<Layout title="lsum - List and Summarize Beautifully">
+	<main class="min-h-screen relative overflow-hidden">
+		<!-- Background Gradients -->
+		<div class="absolute top-0 left-1/2 -translate-x-1/2 w-250 h-150 bg-cyan-900/10 blur-[120px] rounded-full -z-10 pointer-events-none"></div>
+		<div class="absolute bottom-0 right-0 w-125 h-125 bg-purple-900/5 blur-[120px] rounded-full -z-10 pointer-events-none"></div>
+
+		<!-- Nav -->
+		<nav class="container mx-auto px-6 py-8 flex justify-between items-center relative z-10">
+			<div class="flex items-center space-x-2">
+				<div class="w-8 h-8 bg-linear-to-br from-cyan-400 to-cyan-600 rounded-lg flex items-center justify-center font-bold text-slate-900 shadow-lg shadow-cyan-500/20">
+          <img src="/logo.png" alt="lsum logo" class="w-4 h-4" />
+				</div>
+				<span class="text-xl font-bold tracking-tight">lsum</span>
+			</div>
+			<div class="flex items-center space-x-6">
+				<a href="https://pypi.org/project/lsum/" target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-slate-400 hover:text-slate-100 transition-colors">PyPI</a>
+				<a href="https://pypi.org/project/lsum/" class="text-sm font-medium bg-slate-800 border border-slate-700 hover:border-slate-600 px-4 py-2 rounded-lg transition-all">Documentation</a>
+			</div>
+		</nav>
+
+		<!-- Hero Section -->
+		<section class="container mx-auto px-6 pt-20 pb-12 relative z-10">
+			<div class="max-w-4xl mx-auto text-center">
+				<h1 class="text-5xl md:text-7xl font-extrabold mb-6 tracking-tight bg-linear-to-b from-white to-slate-400 bg-clip-text text-transparent">
+					Summarize your directories <br class="hidden md:block" /> with style
+				</h1>
+				<p class="text-xl md:text-2xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+					A modern CLI tool for listing and grouping files by MIME types and extensions. Fast, colorful, and <span class="text-cyan-400">rich</span>-powered.
+				</p>
+
+				<div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 mb-20">
+					<CopyButton />
+					<a
+						href="https://pypi.org/project/lsum/"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="bg-cyan-600 hover:bg-cyan-500 text-white font-semibold py-3 px-8 rounded-xl transition-all shadow-lg shadow-cyan-900/30"
+					>
+						View on PyPI
+					</a>
+				</div>
+
+				<TerminalMockup />
+			</div>
+		</section>
+
+		<!-- Features Grid -->
+		<section class="container mx-auto px-6 py-24 relative z-10">
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+				<div class="p-8 rounded-2xl bg-slate-900/50 border border-slate-800/50 hover:border-cyan-500/20 transition-all duration-300">
+					<div class="w-12 h-12 bg-cyan-900/30 rounded-xl flex items-center justify-center mb-6 text-cyan-400">
+						<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+						</svg>
+					</div>
+					<h3 class="text-xl font-bold mb-3 text-white">Smart Clustering</h3>
+          <p class="text-slate-400 leading-relaxed">Automatically group, filter files by their detected MIME types or extensions. Understand your directory structure at a glance.</p>
+				</div>
+
+				<div class="p-8 rounded-2xl bg-slate-900/50 border border-slate-800/50 hover:border-cyan-500/20 transition-all duration-300">
+					<div class="w-12 h-12 bg-cyan-900/30 rounded-xl flex items-center justify-center mb-6 text-cyan-400">
+						<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+						</svg>
+					</div>
+					<h3 class="text-xl font-bold mb-3 text-white">Fast & Efficient</h3>
+          <p class="text-slate-400 leading-relaxed">Optimized scanning using <span class="text-cyan-400">os.scandir</span>. Respects your <span class="text-cyan-400">.gitignore</span> rules to keep the noise away.</p>
+				</div>
+
+				<div class="p-8 rounded-2xl bg-slate-900/50 border border-slate-800/50 hover:border-cyan-500/20 transition-all duration-300">
+					<div class="w-12 h-12 bg-cyan-900/30 rounded-xl flex items-center justify-center mb-6 text-cyan-400">
+						<svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+						</svg>
+					</div>
+					<h3 class="text-xl font-bold mb-3 text-white">Rich Output</h3>
+          <p class="text-slate-400 leading-relaxed">Built with the <span class="text-cyan-400">rich</span> library. Beautiful tables, icons, and colors directly in your terminal without any extra configuration.</p>
+				</div>
+			</div>
+		</section>
+
+		<!-- Bottom CTA -->
+		<section class="container mx-auto px-6 py-24 border-t border-slate-900 relative z-10">
+			<div class="max-w-2xl mx-auto text-center">
+				<h2 class="text-3xl font-bold mb-6 text-white">Ready to list smarter?</h2>
+				<p class="text-slate-400 mb-10">Install lsum today and transform how you navigate your projects.</p>
+        <div class="flex items-center justify-center space-x-4">
+          <CopyButton />
+        </div>
+			</div>
+		</section>
+
+		<!-- Footer -->
+		<footer class="py-12 border-t border-slate-900 text-center relative z-10">
+			<p class="text-slate-500 text-sm">
+        &copy; 2026 lsum. Built with <a href="https://astro.build" target="_blank" class="hover:text-cyan-400 transition-colors">Astro</a>. Inspired by <a href="https://ripgrep.org" target="_blank" class="hover:text-cyan-400 transition-colors">Ripgrep</a> & <a href="https://astronvim.com" target="_blank" class="hover:text-cyan-400 transition-colors">AstroNvim</a>.
+			</p>
+		</footer>
+	</main>
+</Layout>
